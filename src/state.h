@@ -344,6 +344,10 @@ typedef struct {
         int16_t val);
     extern scene_pattern_t* ss_patterns_ptr(scene_state_t* ss);
     extern size_t ss_patterns_size(void);
+    extern scene_gol_t* ss_gol_grid_ptr(scene_state_t* ss);
+    extern size_t ss_gol_grid_size(void);
+    extern scene_gol_trig_t* ss_gol_trig_ptr(scene_state_t *ss);
+    extern size_t ss_gol_trig_size(void);
 
     // GOL
 

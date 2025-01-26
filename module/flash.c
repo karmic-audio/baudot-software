@@ -89,6 +89,8 @@ void flash_write(uint8_t preset_no, scene_state_t *scene,
                   sizeof(grid_data_t), true);
     flashc_memcpy((void *)&f.scenes[preset_no].text, text,
                   SCENE_TEXT_LINES * SCENE_TEXT_CHARS, true);
+    flashc_memcpy((void *)&f.scenes[preset_no].gol_grid, ss_gol_grid_ptr(scene), ss_gol_grid_size(), true);
+    flashc_memcpy((void *)&f.scenes[preset_no].gol_trig, ss_gol_trig_ptr(scene), ss_gol_trig_size(), true);
 }
 
 void flash_read(uint8_t preset_no, scene_state_t *scene,
@@ -98,6 +100,8 @@ void flash_read(uint8_t preset_no, scene_state_t *scene,
     if (preset_no >= SCENE_SLOTS) return;
     memcpy(ss_scripts_ptr(scene), &f.scenes[preset_no].scripts,
            ss_scripts_size(EDITABLE_SCRIPT_COUNT));
+    memcpy(ss_gol_grid_ptr(scene), &f.scenes[preset_no].gol_grid, ss_gol_grid_size());
+    memcpy(ss_gol_trig_ptr(scene), &f.scenes[preset_no].gol_trig, ss_gol_trig_size());
     if (init_pattern) {
         memcpy(ss_patterns_ptr(scene), &f.scenes[preset_no].patterns,
                ss_patterns_size());

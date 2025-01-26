@@ -321,7 +321,22 @@ size_t ss_patterns_size() {
     return sizeof(scene_pattern_t) * PATTERN_COUNT;
 }
 
+scene_gol_t *ss_gol_grid_ptr(scene_state_t *ss) {
+    return &ss->gol_grid;
+}
 
+
+size_t ss_gol_grid_size() {
+    return sizeof(scene_gol_t);
+}
+
+scene_gol_trig_t *ss_gol_trig_ptr(scene_state_t *ss) {
+    return &ss->trigcells;
+}
+
+size_t ss_gol_trig_size() {
+    return sizeof(scene_gol_trig_t) * 16;
+}
 
 //GOL FUNCTIONS
 
