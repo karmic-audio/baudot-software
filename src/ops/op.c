@@ -76,7 +76,7 @@ const tele_op_t *tele_ops[E_OP__LENGTH] = {
 
     // GOL
 
-    &op_GOL_GEN,
+    &op_GOL_GEN, &op_GOL,
 
     // queue
     &op_Q, &op_Q_AVG, &op_Q_N, &op_Q_CLR, &op_Q_GRW, &op_Q_SUM, &op_Q_MIN,

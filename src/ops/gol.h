@@ -5,5 +5,6 @@
 
 
 extern const tele_op_t op_GOL_GEN;
+extern const tele_op_t op_GOL;
 
 #endif

@@ -134,6 +134,7 @@
 
         # gol
         "GOL.GEN"     => { MATCH_OP(E_OP_GOL_GEN); };
+        "GOL"         => { MATCH_OP(E_OP_GOL); };
 
         # queue
         "Q"           => { MATCH_OP(E_OP_Q); };
