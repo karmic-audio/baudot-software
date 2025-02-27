@@ -133,8 +133,11 @@
         "PN.-W"       => { MATCH_OP(E_OP_PN_SUBW); };
 
         # gol
-        "GOL.GEN"     => { MATCH_OP(E_OP_GOL_GEN); };
         "GOL"         => { MATCH_OP(E_OP_GOL); };
+        "GOL.GEN"     => { MATCH_OP(E_OP_GOL_GEN); };
+        "GOL.TRCLR"   => { MATCH_OP(E_OP_GOL_TRCLR); };
+        "GOL.TR"      => { MATCH_OP(E_OP_GOL_TR); };
+        "GOL.CLR"     => { MATCH_OP(E_OP_GOL_CLR); };
 
         # queue
         "Q"           => { MATCH_OP(E_OP_Q); };

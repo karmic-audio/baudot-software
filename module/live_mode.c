@@ -768,7 +768,7 @@ uint8_t screen_refresh_live() {
             output.has_value = false;
         }
         else if (show_welcome_message) {
-            strcpy(s, "MODE DEV TEST");
+            strcpy(s, "UNRELEASED GOL BUILD");
             
         }
         else { s[0] = 0; }

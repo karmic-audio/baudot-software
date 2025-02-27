@@ -15,7 +15,6 @@ void ss_init(scene_state_t *ss) {
     ss_variables_init(ss);
     ss_patterns_init(ss);
     ss_gol_init(ss);
-    ss_gol_tr_init(ss);
     ss_grid_init(ss);
     ss_rand_init(ss);
     ss_midi_init(ss);
@@ -109,21 +108,13 @@ void ss_pattern_init(scene_state_t *ss, size_t pattern_no) {
 //GOL INIT
 void ss_gol_init(scene_state_t *ss) {
     for (size_t i = 0; i < GOL_X; i++) {
-        ss->gol_grid.cells[i]=0;
-        
+        for (size_t j = 0; j < GOL_Y; j++)
+        {
+           ss->gol_grid.cells[i][j]=0;
+        }   
     }
     
 }
-
-void ss_gol_tr_init(scene_state_t *ss) {
-    for (size_t j = 0; j < GOL_TR_CELLS; j++)
-    {
-        ss->trigcells[j].x = 0;
-        ss->trigcells[j].y = 0;
-        ss->trigcells[j].script = 0;
-    }
-}
-
 
 // grid
 
@@ -330,109 +321,126 @@ size_t ss_gol_grid_size() {
     return sizeof(scene_gol_t);
 }
 
-scene_gol_trig_t *ss_gol_trig_ptr(scene_state_t *ss) {
-    return &ss->trigcells;
-}
-
-size_t ss_gol_trig_size() {
-    return sizeof(scene_gol_trig_t) * 16;
-}
-
 //GOL FUNCTIONS
 
-void gol_flip_on(scene_gol_t *gg, uint8_t GolXcoord, uint8_t GolYcoord) {
-    gg->cells[GolXcoord] =gg->cells[GolXcoord] | (1ULL << GolYcoord);
+void gol_cell_on(scene_gol_t *sg, uint8_t GolXcoord, uint8_t GolYcoord) {
+    
+    sg->cells[GolXcoord][GolYcoord] |= (1 << 7);
 }
 
-void gol_flip_off(scene_gol_t *gg, uint8_t GolXcoord, uint8_t GolYcoord) {
-    gg->cells[GolXcoord] =gg->cells[GolXcoord] & ~(1ULL << GolYcoord);
+void gol_cell_off(scene_gol_t *sg, uint8_t GolXcoord, uint8_t GolYcoord) {
+    
+    sg->cells[GolXcoord][GolYcoord] &= ~(1 << 7);
 }
 
-int gol_isalive(scene_gol_t *gg, uint8_t GolXcoord, uint8_t GolYcoord) {
-    uint8_t y;
-    y = gg->cells[GolXcoord] & (1ULL << GolYcoord) ? 1 : 0;
-    if (y==1) return 1;
-    else return 0;
+int gol_cell_isalive(scene_gol_t *sg, uint8_t GolXcoord, uint8_t GolYcoord) {
+    
+    return (sg->cells[GolXcoord][GolYcoord] & (1 << 7)) != 0;
+    
 }
 
-int gol_AliveNeighbors(scene_gol_t *gg, uint8_t GolXcoord, uint8_t GolYcoord) {
+int gol_cell_AliveNeighbors(scene_gol_t *sg, uint8_t GolXcoord, uint8_t GolYcoord) {
+
     uint8_t count = 0;
     for (int8_t i = -1; i <= 1; i++) {
         for (int8_t j = -1; j <= 1; j++) {
             if (i == 0 && j == 0) continue; // Skip the cell itself
-            int8_t nx = GolXcoord + i;
-            int8_t ny = GolYcoord + j;
-            if (nx >= 0 && nx < 64 && ny >= 0 && ny < 32) {
-                count += gol_isalive(gg, nx, ny);
-            }
+            uint8_t nx = (GolXcoord + i + 64) % 64; 
+            uint8_t ny = (GolYcoord + j + 32) % 32;
+            //if (nx >= 0 && nx < 64 && ny >= 0 && ny < 32) {
+            count += gol_cell_isalive(sg, nx, ny);
+            
         }
     }
     return count;
 }
 
-//GOL
-void gol_set_tr(scene_state_t* ss, uint8_t Xcoord, uint8_t Ycoord, uint8_t cellN ,uint8_t snum) {
-    ss->trigcells[cellN].x = Xcoord;
-    ss->trigcells[cellN].y = Ycoord;
-    ss->trigcells[cellN].script = snum;
+
+void gol_cell_tr(scene_state_t *ss, uint8_t GolXcoord, uint8_t GolYcoord, uint8_t ScriptValue) {
+    
+    if (ScriptValue >= 0 && ScriptValue <= 8)
+    {
+        uint8_t cellValueOld = ss->gol_grid.cells[GolXcoord][GolYcoord];
+        if (gol_cell_isalive(&ss->gol_grid, GolXcoord, GolYcoord))
+        {
+            ss->gol_grid.cells[GolXcoord][GolYcoord] = ScriptValue |= (1 << 7);
+        }
+        else
+        ss->gol_grid.cells[GolXcoord][GolYcoord] = ScriptValue;
+    }
+}
+
+int gol_get_tr(scene_state_t *ss, uint8_t GolXcoord, uint8_t GolYcoord) {
+
+    uint8_t ScriptValue = ss->gol_grid.cells[GolXcoord][GolYcoord];
+    ScriptValue &= ~(1 << 7);
+    return ScriptValue;
 }
 
 void gol_next_gen(scene_state_t *ss) {
+
     scene_gol_t new_gol_grid;
     uint8_t schedule_script[8] = { 0 };
+
     for (uint8_t i = 0; i < GOL_X; i++)
     {
-        new_gol_grid.cells[i] = ss->gol_grid.cells[i];
+        for (uint8_t j = 0; j < GOL_Y; j++)
+        {
+            new_gol_grid.cells[i][j] = ss->gol_grid.cells[i][j];
+        }
     }
     for (uint8_t i = 0; i < GOL_X; i++) {
             for (uint8_t j = 0; j < GOL_Y; j++) {
-                uint8_t neighbors = gol_AliveNeighbors(&ss->gol_grid, i, j);//check whole grid for neighbors
+                uint8_t neighbors = gol_cell_AliveNeighbors(&ss->gol_grid, i, j);//check whole grid for neighbors
                 scene_gol_t *nc = &new_gol_grid;
 
-                if (gol_isalive(&ss->gol_grid, i, j))//update newgrd according to gol rules
+                if (gol_cell_isalive(&ss->gol_grid, i, j)) //update newgrd according to gol rules
                 {
                     if (neighbors < 2 || neighbors > 3)
                     {
-                        gol_flip_off(nc, i, j);
+                        gol_cell_off(nc, i, j);
                     }
                     else
                     {
-                        gol_flip_on(nc, i, j);
+                        gol_cell_on(nc, i, j);
                     }
             }
             else {
                 if (neighbors == 3) {
-                    //if empty cell has 3 neighbors flip alive + compare against tr cells and schedule execute script
-                    for (uint8_t l = 0; l < GOL_TR_CELLS; l++)
+                    //if empty cell has 3 neighbors flip alive + add schedule script
+                    uint8_t golTR = gol_get_tr(ss,i,j);
+                    if (golTR)
                     {
-                        if (ss->trigcells[l].x == i 
-                        && ss->trigcells[l].y == j 
-                        && ss->trigcells[l].script > 0)
-                        { // record all scripts to be executed in array (-1 offset)
-                            int x = ss->trigcells[l].script - 1;
-                            schedule_script[x] = 1;
-                        }
+                        schedule_script[golTR-1] = 1;//adjust 1 to index 0
                     }
-                    gol_flip_on(nc, i, j);
+                    
+                    
+                    gol_cell_on(nc, i, j);
                 }
                 else {
-                    gol_flip_off(nc, i, j);
+                    gol_cell_off(nc, i, j);
                 }
             }
             
         }        
     }
+ 
     memcpy(ss->gol_grid.cells, new_gol_grid.cells, sizeof(new_gol_grid.cells)); // update old grid to new grid
+    tele_gol_updated();
+
 
     for (size_t i = 0; i < 8; i++)//run scheduled scripts 1-8
     {
-        if (schedule_script[i] > 0)
+        if (schedule_script[i])
         {
             run_script(ss, i);
+            tele_gol_updated();
         }
     }
-    
-}    
+}
+
+
+
 // script manipulation
 
 uint8_t ss_get_script_len(scene_state_t *ss, uint8_t idx) {

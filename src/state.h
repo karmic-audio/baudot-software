@@ -24,7 +24,6 @@
 #define PATTERN_LENGTH 64
 #define GOL_X 64
 #define GOL_Y 32
-#define GOL_TR_CELLS 64
 #define SCRIPT_MAX_COMMANDS 6
 #define EXEC_DEPTH 8
 #define WHILE_DEPTH 10000
@@ -133,15 +132,8 @@ typedef struct {
     ///GOL
     typedef struct
     {
-        uint32_t cells[GOL_X];
+        uint8_t cells[GOL_X][GOL_Y];
     } scene_gol_t;
-
-    typedef struct
-    {
-        uint8_t x;
-        uint8_t y;
-        uint8_t script;
-    } scene_gol_trig_t;
 
     typedef struct
     {
@@ -301,7 +293,6 @@ typedef struct {
         cal_data_t cal;
         int8_t i2c_op_address;
         scene_midi_t midi;
-        scene_gol_trig_t trigcells[GOL_TR_CELLS]; //<<<GOL (Bug: if scene_gol_trig_t trigcells under gol_grid. overflowing)
         scene_gol_t gol_grid; //<<<<GOL  
     } scene_state_t;
 
@@ -310,7 +301,6 @@ typedef struct {
     extern void ss_patterns_init(scene_state_t* ss);
     extern void ss_pattern_init(scene_state_t* ss, size_t pattern_no);
     extern void ss_gol_init(scene_state_t* ss); //<<<GOL
-    extern void ss_gol_tr_init(scene_state_t* ss);
     extern void ss_grid_init(scene_state_t* ss);
     extern void ss_grid_common_init(grid_common_t* gc);
     extern void ss_rand_init(scene_state_t* ss);
@@ -346,19 +336,19 @@ typedef struct {
     extern size_t ss_patterns_size(void);
     extern scene_gol_t* ss_gol_grid_ptr(scene_state_t* ss);
     extern size_t ss_gol_grid_size(void);
-    extern scene_gol_trig_t* ss_gol_trig_ptr(scene_state_t *ss);
-    extern size_t ss_gol_trig_size(void);
 
     // GOL
 
-    extern void gol_flip_on(scene_gol_t* gg, uint8_t GolXcoord, uint8_t GolYcoord);
-    extern void gol_flip_off(scene_gol_t* gg, uint8_t GolXcoord, uint8_t GolYcoord);
-    extern int gol_isalive(scene_gol_t* gg, uint8_t GolXcoord, uint8_t GolYcoord);
-    extern int gol_AliveNeighbors(scene_gol_t* gg, uint8_t GolXcoord, uint8_t GolYcoord);
+    extern void gol_cell_on(scene_gol_t* sg, uint8_t GolXcoord, uint8_t GolYcoord);
+    extern void gol_cell_off(scene_gol_t* sg, uint8_t GolXcoord, uint8_t GolYcoord);
+    extern int gol_cell_isalive(scene_gol_t* sg, uint8_t GolXcoord, uint8_t GolYcoord);
+    extern int gol_cell_AliveNeighbors(scene_gol_t* sg, uint8_t GolXcoord, uint8_t GolYcoord);
+    extern void gol_cell_tr(scene_state_t *ss, uint8_t GolXcoord, uint8_t GolYcoord, uint8_t ScriptValue);
+    extern int gol_get_tr(scene_state_t *ss, uint8_t GolXcoord, uint8_t GolYcoord);
     extern void gol_next_gen(scene_state_t* ss);
-    extern void gol_set_tr(scene_state_t* ss, uint8_t Xcoord, uint8_t Ycoord, uint8_t cellN, uint8_t kbnum);
+    
 
-    // end GOL
+    // end  
 
     uint8_t ss_get_script_len(scene_state_t* ss, uint8_t idx);
     const tele_command_t* ss_get_script_command(scene_state_t* ss,
